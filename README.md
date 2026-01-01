@@ -151,8 +151,41 @@ cp .env.local.example .env.local
 `.env.local` を編集：
 
 ```env
-NOTION_API_KEY=secret_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+# Notion API設定
+NOTION_API_KEY=ntn_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 NOTION_DATABASE_ID=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+# NextAuth設定（認証機能を使用する場合）
+NEXTAUTH_SECRET=your-secret-key-here
+NEXTAUTH_URL=http://localhost:3000
+
+# Google OAuth設定（認証機能を使用する場合）
+GOOGLE_CLIENT_ID=your-google-client-id
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+```
+
+#### Google OAuthの設定（認証機能を使用する場合）
+
+1. [Google Cloud Console](https://console.cloud.google.com/)にアクセス
+2. 新しいプロジェクトを作成（または既存のプロジェクトを選択）
+3. 「APIとサービス」→「認証情報」を選択
+4. 「認証情報を作成」→「OAuth 2.0 クライアント ID」を選択
+5. アプリケーションの種類で「ウェブアプリケーション」を選択
+6. 承認済みのリダイレクト URIに以下を追加：
+   - 開発環境: `http://localhost:3000/api/auth/callback/google`
+   - 本番環境: `https://your-domain.vercel.app/api/auth/callback/google`
+7. クライアントIDとクライアントシークレットをコピーして`.env.local`に設定
+
+#### NEXTAUTH_SECRETの生成
+
+ランダムな文字列を生成して設定します：
+
+```bash
+# 方法1: OpenSSLを使用
+openssl rand -base64 32
+
+# 方法2: オンラインツールを使用
+# https://generate-secret.vercel.app/32 など
 ```
 
 ### 5. 開発サーバーの起動
@@ -304,12 +337,145 @@ npm install next-auth
 
 最も簡単で無料なのは**NextAuth.js**です。個人利用や小規模なアプリケーションに最適です。
 
+#### 認証方法の選択
+
+**1. OAuth認証（推奨）**
+- Google、LINE、GitHubなどの外部サービスで認証
+- データベース不要
+- セキュリティが高い
+- **LINE連携を想定する場合、LINE Login（OAuth）を使用することを推奨**
+
+**2. メール/パスワード認証**
+- データベースなしでも可能（個人利用の場合）
+- 環境変数に1ユーザー分の認証情報を保存
+- 複数ユーザーが必要な場合は、データベースの使用を推奨
+
+#### データベースなしで認証できる仕組み
+
+**NextAuth.jsはデータベースなしでも動作します！**
+
+認証の仕組み：
+1. **JWT（JSON Web Token）ベースのセッション管理**
+   - ユーザーがログインすると、暗号化されたトークン（JWT）が生成される
+   - このトークンはクライアントのCookieに保存される
+   - サーバー側でデータベースにセッション情報を保存する必要がない
+
+2. **OAuth認証（Google、GitHub等）**
+   - 外部サービス（Google、GitHub等）で認証を行う
+   - 認証情報は外部サービスが管理するため、自前のデータベースが不要
+   - 認証成功後、JWTトークンを発行してセッション管理
+
+3. **メール認証（Magic Link）**
+   - メールアドレスに認証リンクを送信
+   - リンクをクリックするとログイン完了
+   - ユーザー情報をデータベースに保存する必要がない（メールアドレスのみで認証）
+
+**メリット：**
+- ✅ データベース不要（完全無料）
+- ✅ セットアップが簡単
+- ✅ サーバーレス環境に最適
+- ✅ Vercelの無料枠で十分
+
 **基本的な実装例：**
 1. `npm install next-auth`でインストール
-2. API Routeで認証エンドポイントを作成
+2. API Routeで認証エンドポイントを作成（JWTセッションを使用）
 3. ミドルウェアで保護したいページを指定
 
+**設定例（データベースなし）：**
+```typescript
+// app/api/auth/[...nextauth]/route.ts
+import NextAuth from "next-auth"
+import GoogleProvider from "next-auth/providers/google"
+
+export const authOptions = {
+  providers: [
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    }),
+  ],
+  // JWTセッションを使用（データベース不要）
+  session: {
+    strategy: "jwt",
+  },
+}
+
+export default NextAuth(authOptions)
+```
+
 詳細は[NextAuth.js公式ドキュメント](https://next-auth.js.org/)を参照してください。
+
+#### LINE連携を想定する場合
+
+将来的にLINEで説明書を追加できるようにする場合、**LINE Login（OAuth）**を使用することを推奨します。
+
+**理由：**
+1. **LINE BotやMessaging APIとの統合が容易**
+   - LINE Loginで認証したユーザー情報を、LINE Botでも利用可能
+   - 同じユーザーIDでWebアプリとLINE Botを連携できる
+
+2. **OAuthベースで統一**
+   - Google、LINE、GitHubなど、すべてOAuthベース
+   - 同じ認証フローで複数のプロバイダーに対応可能
+
+3. **セキュリティが高い**
+   - パスワード管理が不要
+   - LINEが認証を管理するため、セキュリティリスクが低い
+
+**実装方法：**
+
+1. **LINE Developersでチャネルを作成**
+   - [LINE Developers](https://developers.line.biz/)にアクセス
+   - 新しいプロバイダーを作成
+   - 「LINE Login」チャネルを作成
+
+2. **LINE Loginの設定**
+   - コールバックURLを設定：
+     - 開発環境: `http://localhost:3000/api/auth/callback/line`
+     - 本番環境: `https://your-domain.vercel.app/api/auth/callback/line`
+   - チャネルIDとチャネルシークレットを取得
+
+3. **NextAuth.jsにLINE Providerを追加**
+   ```typescript
+   import LineProvider from "next-auth/providers/line";
+   
+   providers: [
+     LineProvider({
+       clientId: process.env.LINE_CLIENT_ID!,
+       clientSecret: process.env.LINE_CLIENT_SECRET!,
+     }),
+   ],
+   ```
+
+4. **環境変数に設定**
+   ```env
+   LINE_CLIENT_ID=your-line-channel-id
+   LINE_CLIENT_SECRET=your-line-channel-secret
+   ```
+
+**将来的な拡張：**
+- LINE Botで説明書を追加する機能
+- LINE Messaging APIで説明書を検索する機能
+- LINE Notifyで説明書のリマインダーを送信
+
+これらはすべて、LINE Loginで認証したユーザー情報を利用できます。
+
+#### メール/パスワード認証の設定（個人利用向け）
+
+データベースなしでメール/パスワード認証を使用する場合：
+
+1. **パスワードをハッシュ化**
+   ```bash
+   node -e "const bcrypt = require('bcryptjs'); bcrypt.hash('your-password', 10).then(hash => console.log(hash));"
+   ```
+
+2. **環境変数に設定**
+   ```env
+   ALLOWED_EMAIL=your-email@example.com
+   HASHED_PASSWORD=ハッシュ化されたパスワード
+   ```
+
+**注意**: この方法は個人利用向けです。複数ユーザーが必要な場合は、データベースの使用を推奨します。
 
 ## ライセンス
 

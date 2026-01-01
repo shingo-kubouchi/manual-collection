@@ -1,8 +1,14 @@
+"use client";
+
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 import ManualList from "./components/ManualList";
+import AuthButton from "./components/AuthButton";
 
 // トップページ（一覧ページ）
 export default function Home() {
+  const { data: session } = useSession();
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* ヘッダー */}
@@ -12,12 +18,18 @@ export default function Home() {
             <h1 className="text-2xl font-bold text-gray-800">
               📚 説明書管理
             </h1>
-            <Link
-              href="/add"
-              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-            >
-              + 新規追加
-            </Link>
+            <div className="flex items-center gap-4">
+              {/* ログイン済みの場合のみ新規追加ボタンを表示 */}
+              {session && (
+                <Link
+                  href="/add"
+                  className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                >
+                  + 新規追加
+                </Link>
+              )}
+              <AuthButton />
+            </div>
           </div>
         </div>
       </header>

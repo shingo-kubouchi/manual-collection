@@ -2,12 +2,14 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { Manual } from "@/lib/types";
 import { ApiResponse } from "@/lib/types";
 
 // 説明書一覧表示コンポーネント
 export default function ManualList() {
   const router = useRouter();
+  const { data: session } = useSession();
   const [manuals, setManuals] = useState<Manual[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>("");
@@ -97,12 +99,18 @@ export default function ManualList() {
     return (
       <div className="text-center py-12">
         <p className="text-gray-500 mb-4">説明書がまだ登録されていません</p>
-        <button
-          onClick={() => router.push("/add")}
-          className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-        >
-          最初の説明書を追加
-        </button>
+        {session ? (
+          <button
+            onClick={() => router.push("/add")}
+            className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+          >
+            最初の説明書を追加
+          </button>
+        ) : (
+          <p className="text-sm text-gray-400">
+            説明書を追加するにはログインが必要です
+          </p>
+        )}
       </div>
     );
   }
@@ -164,22 +172,24 @@ export default function ManualList() {
             </div>
           </div>
 
-          {/* アクションボタン */}
-          <div className="flex gap-2 pt-4 border-t border-gray-200">
-            <button
-              onClick={() => router.push(`/edit/${manual.id}`)}
-              className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors text-sm"
-            >
-              編集
-            </button>
-            <button
-              onClick={() => handleDelete(manual.id)}
-              disabled={deletingId === manual.id}
-              className="flex-1 px-4 py-2 bg-red-100 text-red-700 rounded hover:bg-red-200 disabled:bg-gray-100 disabled:text-gray-400 transition-colors text-sm"
-            >
-              {deletingId === manual.id ? "削除中..." : "削除"}
-            </button>
-          </div>
+          {/* アクションボタン（ログイン済みの場合のみ表示） */}
+          {session && (
+            <div className="flex gap-2 pt-4 border-t border-gray-200">
+              <button
+                onClick={() => router.push(`/edit/${manual.id}`)}
+                className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors text-sm"
+              >
+                編集
+              </button>
+              <button
+                onClick={() => handleDelete(manual.id)}
+                disabled={deletingId === manual.id}
+                className="flex-1 px-4 py-2 bg-red-100 text-red-700 rounded hover:bg-red-200 disabled:bg-gray-100 disabled:text-gray-400 transition-colors text-sm"
+              >
+                {deletingId === manual.id ? "削除中..." : "削除"}
+              </button>
+            </div>
+          )}
         </div>
       ))}
     </div>

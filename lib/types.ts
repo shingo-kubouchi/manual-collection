@@ -36,3 +36,11 @@ export interface ApiResponse<T> {
   error?: string;
 }
 
+// 認証関連の型定義
+export interface User {
+  id: string;
+  email?: string | null;
+  name?: string | null;
+  image?: string | null;
+}
+
