@@ -16,9 +16,16 @@ export async function GET(
     return NextResponse.json(response);
   } catch (error: any) {
     console.error("API Error:", error);
+    
+    // セキュリティ: エラーメッセージから機密情報を除外
+    let errorMessage = "説明書の取得に失敗しました";
+    if (error.message && !error.message.includes("NOTION_API_KEY") && !error.message.includes("DATABASE_ID")) {
+      errorMessage = error.message;
+    }
+    
     const response: ApiResponse<null> = {
       success: false,
-      error: error.message || "説明書の取得に失敗しました",
+      error: errorMessage,
     };
     return NextResponse.json(response, { status: 500 });
   }
@@ -49,9 +56,16 @@ export async function PATCH(
     return NextResponse.json(response);
   } catch (error: any) {
     console.error("API Error:", error);
+    
+    // セキュリティ: エラーメッセージから機密情報を除外
+    let errorMessage = "説明書の更新に失敗しました";
+    if (error.message && !error.message.includes("NOTION_API_KEY") && !error.message.includes("DATABASE_ID")) {
+      errorMessage = error.message;
+    }
+    
     const response: ApiResponse<null> = {
       success: false,
-      error: error.message || "説明書の更新に失敗しました",
+      error: errorMessage,
     };
     return NextResponse.json(response, { status: 500 });
   }
@@ -70,9 +84,16 @@ export async function DELETE(
     return NextResponse.json(response);
   } catch (error: any) {
     console.error("API Error:", error);
+    
+    // セキュリティ: エラーメッセージから機密情報を除外
+    let errorMessage = "説明書の削除に失敗しました";
+    if (error.message && !error.message.includes("NOTION_API_KEY") && !error.message.includes("DATABASE_ID")) {
+      errorMessage = error.message;
+    }
+    
     const response: ApiResponse<null> = {
       success: false,
-      error: error.message || "説明書の削除に失敗しました",
+      error: errorMessage,
     };
     return NextResponse.json(response, { status: 500 });
   }

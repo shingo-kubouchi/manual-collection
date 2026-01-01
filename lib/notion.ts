@@ -116,7 +116,6 @@ async function getActualDatabaseId(): Promise<string> {
       const database = await dbResponse.json();
       if (database.object === 'database') {
         cachedDatabaseId = database.id;
-        console.log('✅ Database ID found (direct):', cachedDatabaseId);
         return cachedDatabaseId as string;
       }
     }
@@ -136,7 +135,6 @@ async function getActualDatabaseId(): Promise<string> {
       // ページがデータベースページの場合
       if (page.parent?.type === 'database_id') {
         cachedDatabaseId = page.parent.database_id;
-        console.log('✅ Database ID found (from page parent):', cachedDatabaseId);
         return cachedDatabaseId as string;
       }
 
@@ -156,8 +154,6 @@ async function getActualDatabaseId(): Promise<string> {
         for (const block of blocks.results) {
           if (block.type === 'child_database') {
             cachedDatabaseId = block.id;
-            console.log('✅ Database ID found (from child_database):', cachedDatabaseId);
-            console.log('💡 Tip: 次回からは環境変数にこのIDを設定すると高速化できます:', cachedDatabaseId);
             return cachedDatabaseId as string;
           }
         }
@@ -166,7 +162,7 @@ async function getActualDatabaseId(): Promise<string> {
     
     throw new Error('データベースIDを取得できませんでした。ページIDが正しいか、Integrationがデータベースに接続されているか確認してください。');
   } catch (error: any) {
-    console.error('❌ Error getting database ID:', error);
+    console.error('Error getting database ID:', error);
     throw error;
   }
 }
@@ -253,9 +249,9 @@ export async function createManual(data: {
   カテゴリ?: string;
 }): Promise<Manual> {
   try {
-    // デバッグ用: データベースIDをログ出力
-    console.log("Database ID being used:", DATABASE_ID_STRING);
-    console.log("Database ID length:", DATABASE_ID_STRING.length);
+    // データベースIDを取得（初回のみ、以降はキャッシュを使用）
+    const actualDatabaseId = await getActualDatabaseId();
+    
     const properties: any = {
       "製品名": {
         title: [
@@ -308,9 +304,6 @@ export async function createManual(data: {
       };
     }
 
-    // データベースIDを取得（初回のみ、以降はキャッシュを使用）
-    const actualDatabaseId = await getActualDatabaseId();
-    
     const page = await notion.pages.create({
       parent: {
         database_id: actualDatabaseId,
