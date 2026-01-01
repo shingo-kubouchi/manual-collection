@@ -41,45 +41,50 @@ function SignInForm() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-      <div className="max-w-md w-full bg-white rounded-lg shadow-md p-8">
-        <h1 className="text-2xl font-bold text-gray-800 mb-6 text-center">
-          ログイン
-        </h1>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-4">
+      <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-6 sm:p-8">
+        <div className="text-center mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
+            ログイン
+          </h1>
+          <p className="text-sm text-gray-500">
+            説明書管理アプリにアクセス
+          </p>
+        </div>
 
         {/* ログイン方法の切り替え */}
-        <div className="flex gap-2 mb-6">
-          <button
-            onClick={() => setLoginMethod("oauth")}
-            className={`flex-1 px-4 py-2 rounded-lg transition-colors ${
-              loginMethod === "oauth"
-                ? "bg-blue-500 text-white"
-                : "bg-gray-100 text-gray-700"
-            }`}
-          >
-            OAuth
-          </button>
+        <div className="flex gap-2 mb-6 bg-gray-100 p-1 rounded-xl">
           <button
             onClick={() => setLoginMethod("credentials")}
-            className={`flex-1 px-4 py-2 rounded-lg transition-colors ${
+            className={`flex-1 px-4 py-2.5 rounded-lg transition-all duration-200 font-medium text-sm ${
               loginMethod === "credentials"
-                ? "bg-blue-500 text-white"
-                : "bg-gray-100 text-gray-700"
+                ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-md"
+                : "bg-transparent text-gray-700 hover:text-gray-900"
             }`}
           >
             メール/パスワード
+          </button>
+          <button
+            onClick={() => setLoginMethod("oauth")}
+            className={`flex-1 px-4 py-2.5 rounded-lg transition-all duration-200 font-medium text-sm ${
+              loginMethod === "oauth"
+                ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-md"
+                : "bg-transparent text-gray-700 hover:text-gray-900"
+            }`}
+          >
+            Google
           </button>
         </div>
 
         {/* OAuthログイン */}
         {loginMethod === "oauth" && (
-          <>
-            <p className="text-gray-600 mb-6 text-center">
-              説明書管理アプリを使用するには、Googleアカウントでログインしてください。
+          <div className="space-y-4">
+            <p className="text-gray-600 text-sm text-center">
+              Googleアカウントで簡単にログインできます
             </p>
             <button
               onClick={() => signIn("google", { callbackUrl })}
-              className="w-full px-4 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center justify-center gap-2"
+              className="w-full px-4 py-3.5 bg-white border-2 border-gray-200 text-gray-700 rounded-xl hover:border-gray-300 hover:shadow-md transition-all duration-200 flex items-center justify-center gap-3 font-medium"
             >
               <svg
                 className="w-5 h-5"
@@ -93,14 +98,14 @@ function SignInForm() {
               </svg>
               Googleでログイン
             </button>
-          </>
+          </div>
         )}
 
         {/* メール/パスワードログイン */}
         {loginMethod === "credentials" && (
-          <form onSubmit={handleCredentialsLogin} className="space-y-4">
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+          <form onSubmit={handleCredentialsLogin} className="space-y-5">
+            <div className="space-y-2">
+              <label htmlFor="email" className="block text-sm font-semibold text-gray-700">
                 メールアドレス
               </label>
               <input
@@ -109,12 +114,12 @@ function SignInForm() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-base"
                 placeholder="example@email.com"
               />
             </div>
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+            <div className="space-y-2">
+              <label htmlFor="password" className="block text-sm font-semibold text-gray-700">
                 パスワード
               </label>
               <input
@@ -123,26 +128,36 @@ function SignInForm() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-base"
                 placeholder="パスワード"
               />
             </div>
             {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-                {error}
+              <div className="bg-red-50 border-2 border-red-200 text-red-700 px-4 py-3 rounded-xl">
+                <div className="flex items-start gap-2">
+                  <span className="text-lg">⚠️</span>
+                  <p className="text-sm font-medium">{error}</p>
+                </div>
               </div>
             )}
             <button
               type="submit"
               disabled={loading}
-              className="w-full px-4 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+              className="w-full px-4 py-3.5 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl hover:from-blue-600 hover:to-purple-700 disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 font-semibold"
             >
-              {loading ? "ログイン中..." : "ログイン"}
+              {loading ? (
+                <span className="flex items-center justify-center gap-2">
+                  <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                  ログイン中...
+                </span>
+              ) : (
+                "ログイン"
+              )}
             </button>
           </form>
         )}
 
-        <p className="text-xs text-gray-500 mt-4 text-center">
+        <p className="text-xs text-gray-400 mt-6 text-center">
           ログインすることで、利用規約とプライバシーポリシーに同意したものとみなされます。
         </p>
       </div>
@@ -154,14 +169,17 @@ function SignInForm() {
 export default function SignInPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="max-w-md w-full bg-white rounded-lg shadow-md p-8">
-          <h1 className="text-2xl font-bold text-gray-800 mb-6 text-center">
-            ログイン
-          </h1>
-          <p className="text-gray-600 mb-6 text-center">
-            読み込み中...
-          </p>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-4">
+        <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8">
+          <div className="text-center">
+            <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
+              ログイン
+            </h1>
+            <p className="text-gray-500 text-sm">
+              読み込み中...
+            </p>
+          </div>
         </div>
       </div>
     }>

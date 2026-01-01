@@ -82,51 +82,69 @@ export default function ImageUpload({
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-col sm:flex-row gap-4">
-        {/* ファイル選択ボタン（カメラ対応） */}
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          capture="environment" // モバイルでカメラを起動
-          multiple
-          onChange={handleFileChange}
-          className="hidden"
-        />
+      {/* ファイル選択ボタン（カメラ対応） */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        capture="environment" // モバイルでカメラを起動
+        multiple
+        onChange={handleFileChange}
+        className="hidden"
+      />
 
-        {/* カメラ/ファイル選択ボタン */}
-        <button
-          type="button"
-          onClick={handleCameraClick}
-          className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-        >
-          📷 カメラで撮影 / ファイルを選択
-        </button>
-      </div>
+      {/* カメラ/ファイル選択ボタン - モダンなデザイン */}
+      <button
+        type="button"
+        onClick={handleCameraClick}
+        className="w-full px-6 py-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl hover:from-blue-600 hover:to-purple-700 shadow-lg hover:shadow-xl transform hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 font-semibold text-base flex items-center justify-center gap-2"
+      >
+        <span className="text-xl">📷</span>
+        <span>カメラで撮影 / ファイルを選択</span>
+      </button>
 
       {/* エラーメッセージ */}
       {error && (
-        <div className="text-red-500 text-sm bg-red-50 p-2 rounded">
-          {error}
+        <div className="bg-red-50 border-2 border-red-200 text-red-700 px-4 py-3 rounded-xl">
+          <div className="flex items-start gap-2">
+            <span className="text-lg">⚠️</span>
+            <p className="text-sm font-medium">{error}</p>
+          </div>
         </div>
       )}
 
       {/* プレビュー画像 */}
       {previewImages.length > 0 && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4">
           {previewImages.map((url, index) => (
             <div key={index} className="relative group">
-              <img
-                src={url}
-                alt={`プレビュー ${index + 1}`}
-                className="w-full h-32 object-cover rounded-lg border border-gray-300"
-              />
+              <div className="relative overflow-hidden rounded-xl border-2 border-gray-200 aspect-square">
+                <img
+                  src={url}
+                  alt={`プレビュー ${index + 1}`}
+                  className="w-full h-full object-cover"
+                  loading="lazy"
+                />
+                {/* オーバーレイ（ホバー時） */}
+                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveImage(index)}
+                    className="bg-red-500 text-white rounded-full w-10 h-10 flex items-center justify-center hover:bg-red-600 transform hover:scale-110 transition-all shadow-lg"
+                    aria-label="画像を削除"
+                  >
+                    <span className="text-xl font-bold">×</span>
+                  </button>
+                </div>
+              </div>
+              {/* モバイル用の削除ボタン（常に表示） */}
               <button
                 type="button"
                 onClick={() => handleRemoveImage(index)}
-                className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                className="sm:hidden absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-7 h-7 flex items-center justify-center shadow-lg active:scale-90 transition-transform"
+                aria-label="画像を削除"
               >
-                ×
+                <span className="text-sm font-bold">×</span>
               </button>
             </div>
           ))}
@@ -134,10 +152,11 @@ export default function ImageUpload({
       )}
 
       {/* ヒント */}
-      <p className="text-sm text-gray-500">
-        モバイルデバイスでは、ボタンをタップするとカメラが起動します。
-        最大{maxSize}MBまでの画像をアップロードできます。
-      </p>
+      <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 sm:p-4">
+        <p className="text-xs sm:text-sm text-blue-700">
+          <span className="font-semibold">💡 ヒント:</span> モバイルデバイスでは、ボタンをタップするとカメラが起動します。最大{maxSize}MBまでの画像をアップロードできます。
+        </p>
+      </div>
     </div>
   );
 }

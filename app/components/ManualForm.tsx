@@ -115,17 +115,23 @@ export default function ManualForm({ initialData, manualId, existingImages = [] 
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl mx-auto">
+    <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-8 max-w-2xl mx-auto">
       {/* エラーメッセージ */}
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-          {error}
+        <div className="bg-red-50 border-2 border-red-200 text-red-700 px-4 py-4 rounded-xl shadow-sm">
+          <div className="flex items-start gap-3">
+            <span className="text-xl">⚠️</span>
+            <div>
+              <p className="font-medium mb-1">エラーが発生しました</p>
+              <p className="text-sm">{error}</p>
+            </div>
+          </div>
         </div>
       )}
 
       {/* 製品名 */}
-      <div>
-        <label htmlFor="productName" className="block text-sm font-medium text-gray-700 mb-2">
+      <div className="space-y-2">
+        <label htmlFor="productName" className="block text-sm font-semibold text-gray-700">
           製品名 <span className="text-red-500">*</span>
         </label>
         <input
@@ -134,14 +140,14 @@ export default function ManualForm({ initialData, manualId, existingImages = [] 
           required
           value={formData.製品名}
           onChange={(e) => setFormData({ ...formData, 製品名: e.target.value })}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-base"
           placeholder="例: iPhone 15 Pro"
         />
       </div>
 
       {/* 説明書URL */}
-      <div>
-        <label htmlFor="manualUrl" className="block text-sm font-medium text-gray-700 mb-2">
+      <div className="space-y-2">
+        <label htmlFor="manualUrl" className="block text-sm font-semibold text-gray-700">
           説明書URL（任意）
         </label>
         <input
@@ -149,31 +155,31 @@ export default function ManualForm({ initialData, manualId, existingImages = [] 
           id="manualUrl"
           value={formData.説明書URL}
           onChange={(e) => setFormData({ ...formData, 説明書URL: e.target.value })}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-base"
           placeholder="https://example.com/manual.pdf"
         />
-        <p className="mt-1 text-sm text-gray-500">
+        <p className="text-xs sm:text-sm text-gray-500">
           ネット上に公開されている説明書のURLがあれば入力してください
         </p>
       </div>
 
       {/* 説明書画像 */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+      <div className="space-y-2">
+        <label className="block text-sm font-semibold text-gray-700">
           説明書画像（任意）
         </label>
         <ImageUpload
           onImageSelect={(files) => setImageFiles([...imageFiles, ...files])}
           existingImages={existingImages}
         />
-        <p className="mt-1 text-sm text-gray-500">
+        <p className="text-xs sm:text-sm text-gray-500">
           URLがない場合は、説明書を写真で撮影してアップロードできます
         </p>
       </div>
 
       {/* 購入日 */}
-      <div>
-        <label htmlFor="purchaseDate" className="block text-sm font-medium text-gray-700 mb-2">
+      <div className="space-y-2">
+        <label htmlFor="purchaseDate" className="block text-sm font-semibold text-gray-700">
           購入日（任意）
         </label>
         <input
@@ -181,20 +187,20 @@ export default function ManualForm({ initialData, manualId, existingImages = [] 
           id="purchaseDate"
           value={formData.購入日}
           onChange={(e) => setFormData({ ...formData, 購入日: e.target.value })}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-base"
         />
       </div>
 
       {/* カテゴリ */}
-      <div>
-        <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-2">
+      <div className="space-y-2">
+        <label htmlFor="category" className="block text-sm font-semibold text-gray-700">
           カテゴリ（任意）
         </label>
         <select
           id="category"
           value={formData.カテゴリ}
           onChange={(e) => setFormData({ ...formData, カテゴリ: e.target.value })}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-base bg-white"
         >
           <option value="">選択してください</option>
           {CATEGORIES.map((cat) => (
@@ -206,18 +212,25 @@ export default function ManualForm({ initialData, manualId, existingImages = [] 
       </div>
 
       {/* 送信ボタン */}
-      <div className="flex gap-4">
+      <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-4">
         <button
           type="submit"
           disabled={loading}
-          className="flex-1 px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+          className="flex-1 px-6 py-3.5 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl hover:from-blue-600 hover:to-purple-700 disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 font-semibold text-base"
         >
-          {loading ? "保存中..." : manualId ? "更新" : "保存"}
+          {loading ? (
+            <span className="flex items-center justify-center gap-2">
+              <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+              保存中...
+            </span>
+          ) : (
+            manualId ? "更新する" : "保存する"
+          )}
         </button>
         <button
           type="button"
           onClick={() => router.back()}
-          className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+          className="px-6 py-3.5 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 active:bg-gray-300 transition-colors font-medium text-base"
         >
           キャンセル
         </button>
