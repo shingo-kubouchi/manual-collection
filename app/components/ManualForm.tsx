@@ -8,6 +8,7 @@ import { ManualFormData } from "@/lib/types";
 interface ManualFormProps {
   initialData?: Partial<ManualFormData>;
   manualId?: string;
+  existingImages?: string[]; // 既存の画像URL（編集時用）
 }
 
 // カテゴリの選択肢（必要に応じてカスタマイズ可能）
@@ -21,7 +22,7 @@ const CATEGORIES = [
 ];
 
 // 説明書の追加・編集フォームコンポーネント
-export default function ManualForm({ initialData, manualId }: ManualFormProps) {
+export default function ManualForm({ initialData, manualId, existingImages = [] }: ManualFormProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>("");
@@ -163,7 +164,7 @@ export default function ManualForm({ initialData, manualId }: ManualFormProps) {
         </label>
         <ImageUpload
           onImageSelect={(files) => setImageFiles([...imageFiles, ...files])}
-          existingImages={formData.説明書画像?.map((img) => (typeof img === "string" ? img : URL.createObjectURL(img))) || []}
+          existingImages={existingImages}
         />
         <p className="mt-1 text-sm text-gray-500">
           URLがない場合は、説明書を写真で撮影してアップロードできます

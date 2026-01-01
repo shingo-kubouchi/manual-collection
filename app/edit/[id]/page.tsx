@@ -43,11 +43,11 @@ export default async function EditPage({
           initialData={{
             製品名: manual.製品名,
             説明書URL: manual.説明書URL,
-            説明書画像: manual.説明書画像,
             購入日: manual.購入日,
             カテゴリ: manual.カテゴリ,
           }}
           manualId={id}
+          existingImages={manual.説明書画像}
         />
       </main>
     </div>
