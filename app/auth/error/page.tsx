@@ -1,10 +1,11 @@
 "use client";
 
+import { Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 
-// 認証エラーページ
-export default function AuthErrorPage() {
+// エラーメッセージを表示するコンポーネント
+function ErrorContent() {
   const searchParams = useSearchParams();
   const error = searchParams.get("error");
 
@@ -46,6 +47,26 @@ export default function AuthErrorPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+// 認証エラーページ
+export default function AuthErrorPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="max-w-md w-full bg-white rounded-lg shadow-md p-8">
+          <h1 className="text-2xl font-bold text-gray-800 mb-4 text-center">
+            認証エラー
+          </h1>
+          <p className="text-gray-600 mb-6 text-center">
+            読み込み中...
+          </p>
+        </div>
+      </div>
+    }>
+      <ErrorContent />
+    </Suspense>
   );
 }
 
