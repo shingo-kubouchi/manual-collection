@@ -12,7 +12,7 @@ export default function SignInPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [loginMethod, setLoginMethod] = useState<"oauth" | "credentials">("oauth");
+  const [loginMethod, setLoginMethod] = useState<"oauth" | "credentials">("credentials");
 
   // メール/パスワードでログイン
   const handleCredentialsLogin = async (e: React.FormEvent) => {

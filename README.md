@@ -466,14 +466,27 @@ export default NextAuth(authOptions)
 
 1. **パスワードをハッシュ化**
    ```bash
+   node scripts/hash-password.js あなたのパスワード
+   ```
+   または
+   ```bash
    node -e "const bcrypt = require('bcryptjs'); bcrypt.hash('your-password', 10).then(hash => console.log(hash));"
    ```
 
 2. **環境変数に設定**
+   `.env.local`ファイルに以下を追加：
    ```env
    ALLOWED_EMAIL=your-email@example.com
-   HASHED_PASSWORD=ハッシュ化されたパスワード
+   HASHED_PASSWORD="$2a$10$ハッシュ化されたパスワード..."
    ```
+   
+   **重要**: ハッシュは `$` で始まるため、**引用符（`"`）で囲むことを推奨**します。
+   引用符がない場合、シェルが `$` を変数として解釈してしまう可能性があります。
+
+3. **ログイン方法**
+   - ログイン画面のメールアドレス: `.env.local`の`ALLOWED_EMAIL`と同じ値を入力
+   - ログイン画面のパスワード: **元のパスワード（ハッシュ化前）**を入力
+   - ⚠️ **重要**: ハッシュ化された値をパスワードとして入力しないでください
 
 **注意**: この方法は個人利用向けです。複数ユーザーが必要な場合は、データベースの使用を推奨します。
 
