@@ -467,6 +467,7 @@ export default NextAuth(authOptions)
 1. **パスワードをハッシュ化**
    ```bash
    node scripts/hash-password.js あなたのパスワード
+   node scripts/encode-env-password.js
    ```
    または
    ```bash
