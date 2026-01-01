@@ -35,3 +35,6 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# development documentation (optional - 履歴をGitに含めたい場合は削除)
+# DEVELOPMENT.md
+
