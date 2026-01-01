@@ -1,1 +1,577 @@
-# manual-collection
+# 説明書管理アプリ
+
+製品の説明書をNotionで管理するサーバーレスアプリケーションです。説明書のURLや画像、購入日、カテゴリなどの情報を保存・管理できます。
+
+## 機能
+
+- 📚 説明書のURLまたは画像を保存
+- 📷 カメラで説明書を撮影してアップロード（モバイル対応）
+- 📅 購入日とカテゴリで整理
+- 🔍 一覧表示で簡単に検索
+- ✏️ 説明書の編集・削除
+
+## 技術スタック
+
+- **フロントエンド**: Next.js 14 (App Router), React, TypeScript
+- **スタイリング**: Tailwind CSS
+- **バックエンド**: Vercel Serverless Functions
+- **データベース**: Notion API
+- **ホスティング**: Vercel（無料枠対応）
+
+## 📖 ドキュメント
+
+- [README.md](./README.md) - プロジェクトの概要とセットアップ手順
+- [DEVELOPMENT.md](./DEVELOPMENT.md) - 開発履歴、エラー解決方法、開発フロー
+
+## セットアップ手順
+
+### 1. 依存関係のインストール
+
+```bash
+npm install
+```
+
+### 2. Notion Integrationの作成
+
+1. [Notion Integrations](https://www.notion.so/my-integrations) にアクセス
+2. 「+ New integration」をクリック
+3. 名前を入力（例: "説明書管理アプリ"）
+4. 「Submit」をクリック
+5. 「Internal Integration Token」をコピー（`secret_`で始まる文字列）
+
+### 3. Notionデータベースの作成
+
+#### ステップ1: データベースの作成
+
+1. Notionで新しいページを作成
+2. `/database` と入力して「Table - Inline」を選択
+3. テーブルが作成されます（初期状態では「Name」という列が1つあります）
+
+#### ステップ2: プロパティ（列）の設定
+
+テーブルの上部にある列ヘッダーをクリックして、以下のプロパティを順番に作成します：
+
+**既存の「Name」列を「製品名」に変更：**
+1. 「Name」列のヘッダーをクリック
+2. 「Rename」を選択
+3. 「製品名」に変更
+4. タイプは「Title」のまま（変更不要）
+
+**新しいプロパティを追加：**
+テーブルの右端にある「+」ボタンをクリックして、以下のプロパティを追加します：
+
+1. **説明書URL**
+   - 「+」ボタンをクリック
+   - プロパティ名に「説明書URL」と入力
+   - タイプで「URL」を選択
+   - 「Done」をクリック
+
+2. **説明書画像**
+   - 「+」ボタンをクリック
+   - プロパティ名に「説明書画像」と入力
+   - タイプで「Files & media」を選択
+   - 「Done」をクリック
+
+3. **購入日**
+   - 「+」ボタンをクリック
+   - プロパティ名に「購入日」と入力
+   - タイプで「Date」を選択
+   - 「Done」をクリック
+
+4. **カテゴリ**
+   - 「+」ボタンをクリック
+   - プロパティ名に「カテゴリ」と入力
+   - タイプで「Select」を選択
+   - 「Done」をクリック
+   - （オプション）カテゴリの選択肢を追加する場合：
+     - 「カテゴリ」列のセルをクリック
+     - 「Add an option」から「家電」「家具」「食品」などを追加
+
+**自動プロパティ（既に存在する場合があります）：**
+- **作成日**: タイプが「Created time」のプロパティ（自動で存在する場合あり）
+- **更新日**: タイプが「Last edited time」のプロパティ（自動で存在する場合あり）
+
+もし存在しない場合は、同様に「+」ボタンから追加してください。
+
+#### ステップ3: データベースIDの取得
+
+**重要**: データベースIDの取得方法には2つのパターンがあります。
+
+**方法A: URLから直接取得（推奨）**
+
+1. データベースページのURLをコピー
+   - 例: `https://www.notion.so/2db00d36-98bc-80d0-9bd0-c449fbb26645?v=...`
+2. URLの中の `2db00d36-98bc-80d0-9bd0-c449fbb26645` の部分がデータベースIDです
+   - **ハイフン（`-`）を含む形式の場合、そのまま使用してください**
+   - 例: `NOTION_DATABASE_ID=2db00d36-98bc-80d0-9bd0-c449fbb26645`
+
+**方法B: ハイフンを削除する場合**
+
+1. URLから取得したIDからハイフンを削除
+   - 例: `2db00d36-98bc-80d0-9bd0-c449fbb26645` → `2db00d3698bc80d09bd0c449fbb26645`
+2. 32文字の英数字になります
+
+**どちらを使うべきか？**
+- 通常は**方法A（ハイフンを含む形式）**をそのまま使用することを推奨します
+- もし方法Aでエラーが出る場合は、方法Bを試してください
+
+3. このIDをメモしておきます（後で環境変数に設定します）
+
+#### ステップ4: Integrationの接続（重要！）
+
+**この手順を忘れると、アプリからデータベースにアクセスできません！**
+
+1. **データベースページを開く**
+   - 作成したデータベースのページを開きます
+
+2. **Connectionsメニューを開く**
+   - データベースページの右上にある「...」（三点リーダー）メニューをクリック
+   - または、ページの右上にある「Share」ボタンをクリック
+
+3. **Integrationを接続**
+   - 「Connections」タブを選択（「Share」ダイアログが開いている場合）
+   - または、メニューから「Connections」を選択
+   - 「Add connections」または「Connect」ボタンをクリック
+   - ステップ2で作成したIntegration（例: "説明書管理アプリ"）を選択
+   - Integrationの横にチェックマークが表示されれば接続成功です
+
+4. **接続の確認**
+   - Integrationが接続されると、データベースページの右上にIntegrationのアイコンが表示されます
+   - または、「Connections」セクションにIntegration名が表示されます
+
+**重要**: 
+- データベースが親ページの中にある場合、**親ページにもIntegrationを接続する必要がある場合があります**
+- データベースページ自体に必ずIntegrationを接続してください
+
+これでデータベースの準備が完了です！
+
+### 4. 環境変数の設定
+
+`.env.local.example` を `.env.local` にコピーして、値を設定：
+
+```bash
+cp .env.local.example .env.local
+```
+
+`.env.local` を編集：
+
+```env
+# Notion API設定
+NOTION_API_KEY=ntn_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+NOTION_DATABASE_ID=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+# NextAuth設定（認証機能を使用する場合）
+NEXTAUTH_SECRET=your-secret-key-here
+NEXTAUTH_URL=http://localhost:3000
+
+# Google OAuth設定（認証機能を使用する場合）
+GOOGLE_CLIENT_ID=your-google-client-id
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+```
+
+#### Google OAuthの設定（認証機能を使用する場合）
+
+1. [Google Cloud Console](https://console.cloud.google.com/)にアクセス
+2. 新しいプロジェクトを作成（または既存のプロジェクトを選択）
+3. 「APIとサービス」→「認証情報」を選択
+4. 「認証情報を作成」→「OAuth 2.0 クライアント ID」を選択
+5. アプリケーションの種類で「ウェブアプリケーション」を選択
+6. 承認済みのリダイレクト URIに以下を追加：
+   - 開発環境: `http://localhost:3000/api/auth/callback/google`
+   - 本番環境: `https://your-domain.vercel.app/api/auth/callback/google`
+7. クライアントIDとクライアントシークレットをコピーして`.env.local`に設定
+
+#### NEXTAUTH_SECRETの生成
+
+ランダムな文字列を生成して設定します：
+
+```bash
+# 方法1: OpenSSLを使用
+openssl rand -base64 32
+
+# 方法2: オンラインツールを使用
+# https://generate-secret.vercel.app/32 など
+```
+
+### 5. 開発サーバーの起動
+
+```bash
+npm run dev
+```
+
+ブラウザで [http://localhost:3000](http://localhost:3000) を開きます。
+
+## デプロイ（Vercel）
+
+### 1. Vercelにプロジェクトをインポート
+
+1. [Vercel](https://vercel.com) にログイン
+2. 「Add New Project」をクリック
+3. GitHubリポジトリを選択（または手動でアップロード）
+
+### 2. 環境変数の設定
+
+Vercelのプロジェクト設定で環境変数を追加：
+
+**必須の環境変数:**
+```env
+NOTION_API_KEY=ntn_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+NOTION_DATABASE_ID=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+NEXTAUTH_SECRET=your-secret-key-here
+NEXTAUTH_URL=https://your-domain.vercel.app
+```
+
+**認証機能を使用する場合:**
+```env
+ALLOWED_EMAIL=your-email@example.com
+HASHED_PASSWORD_B64=XXX
+```
+
+**Google OAuthを使用する場合:**
+```env
+GOOGLE_CLIENT_ID=your-google-client-id
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+```
+
+**注意:**
+- `HASHED_PASSWORD_B64`は、ローカルで`node scripts/encode-env-password.js`を実行して取得できます
+- `NEXTAUTH_URL`は、デプロイ後の実際のURLに変更してください（例: `https://your-app.vercel.app`）
+
+### 3. デプロイ
+
+「Deploy」をクリックしてデプロイを開始します。
+
+### 4. デプロイ後の確認
+
+- ログイン機能が動作するか確認
+- Notion APIとの連携が正常に動作するか確認
+- 環境変数が正しく読み込まれているか確認（Vercelのログを確認）
+
+## 使い方
+
+### 説明書の追加
+
+1. トップページの「+ 新規追加」ボタンをクリック
+2. 製品名を入力（必須）
+3. 説明書URLがある場合は入力、ない場合は画像をアップロード
+4. 購入日やカテゴリを入力（任意）
+5. 「保存」をクリック
+
+### 画像のアップロード
+
+- **PC**: 「カメラで撮影 / ファイルを選択」ボタンから画像ファイルを選択
+- **モバイル**: ボタンをタップするとカメラが起動します
+
+### 説明書の編集・削除
+
+一覧ページの各カードにある「編集」または「削除」ボタンから操作できます。
+
+## 注意事項
+
+### 画像アップロードについて
+
+現在の実装では、画像はBase64形式でNotionに保存されます。Notion APIは直接Base64アップロードをサポートしていないため、実際のプロダクション環境では以下の対応を推奨します：
+
+1. **Cloudinary**などの外部ストレージサービスを使用
+2. 画像をCloudinaryにアップロード
+3. 取得したURLをNotionに保存
+
+### 無料枠の制約
+
+- **Vercel**: 100GB帯域/月（個人利用なら十分）
+- **Notion API**: レート制限あり（3リクエスト/秒）
+- **画像サイズ**: Notionは10MB制限
+
+## トラブルシューティング
+
+### 「Could not find database」エラーが発生する場合
+
+このエラーは、Integrationがデータベースに接続されていない場合に発生します。
+
+**解決方法：**
+
+1. **データベースページでIntegrationを接続**
+   - データベースページを開く
+   - 右上の「...」メニューまたは「Share」ボタンをクリック
+   - 「Connections」タブを選択
+   - 「Add connections」をクリック
+   - 作成したIntegrationを選択して接続
+
+2. **親ページにも接続が必要な場合**
+   - データベースが親ページの中にある場合、親ページにもIntegrationを接続する必要がある場合があります
+   - 親ページでも同様に「Connections」からIntegrationを接続してください
+
+3. **データベースIDの確認**
+   - `.env.local`ファイルの`NOTION_DATABASE_ID`が正しいか確認
+   - データベースのURLから32文字のIDを正しく取得しているか確認
+   - ハイフン（`-`）が含まれている場合は、そのまま含めてください
+
+4. **開発サーバーの再起動**
+   - 環境変数を変更した後は、開発サーバーを再起動してください
+   ```bash
+   # Ctrl+Cで停止してから
+   npm run dev
+   ```
+
+### 「API token is invalid」エラーが発生する場合
+
+1. `.env.local`ファイルの`NOTION_API_KEY`が正しいか確認
+2. API Keyは`ntn_`または`secret_`で始まる文字列です
+3. 余分なスペースや改行が含まれていないか確認
+4. 開発サーバーを再起動して環境変数を再読み込み
+
+### Notion APIエラーが発生する場合
+
+1. Integration Tokenが正しく設定されているか確認
+2. データベースIDが正しいか確認
+3. Integrationがデータベースに接続されているか確認
+4. Integrationの権限設定を確認（読み取り・書き込み権限が必要）
+
+### 画像が表示されない場合
+
+- 画像サイズが10MBを超えていないか確認
+- ブラウザのコンソールでエラーを確認
+- Notion APIは直接Base64アップロードをサポートしていないため、画像は外部URLとして保存する必要があります
+
+## 認証機能の追加（オプション）
+
+個人利用の場合は認証は不要ですが、公開する場合は認証機能の追加を推奨します。
+
+### 無料枠で使える認証サービス
+
+#### 1. NextAuth.js（推奨）
+- **完全無料**（オープンソース）
+- Next.js専用で統合が容易
+- メール認証、OAuth（Google、GitHub等）をサポート
+- Vercelとの統合が簡単
+
+**セットアップ例：**
+```bash
+npm install next-auth
+```
+
+#### 2. Auth0
+- **無料プラン**: 7,000 MAU（月間アクティブユーザー）まで
+- 多機能な認証・認可プラットフォーム
+- ソーシャルログイン、多要素認証など
+
+#### 3. Firebase Authentication
+- **無料枠**: 月間50,000 MAUまで
+- Googleが提供
+- メール・パスワード、SNSログインなど
+
+#### 4. Clerk
+- **無料プラン**: 10,000 MAUまで
+- 開発者向けの認証サービス
+- セットアップが簡単
+
+### 推奨：NextAuth.js
+
+最も簡単で無料なのは**NextAuth.js**です。個人利用や小規模なアプリケーションに最適です。
+
+#### 認証方法の選択
+
+**1. OAuth認証（推奨）**
+- Google、LINE、GitHubなどの外部サービスで認証
+- データベース不要
+- セキュリティが高い
+- **LINE連携を想定する場合、LINE Login（OAuth）を使用することを推奨**
+
+**2. メール/パスワード認証**
+- データベースなしでも可能（個人利用の場合）
+- 環境変数に1ユーザー分の認証情報を保存
+- 複数ユーザーが必要な場合は、データベースの使用を推奨
+
+#### データベースなしで認証できる仕組み
+
+**NextAuth.jsはデータベースなしでも動作します！**
+
+認証の仕組み：
+1. **JWT（JSON Web Token）ベースのセッション管理**
+   - ユーザーがログインすると、暗号化されたトークン（JWT）が生成される
+   - このトークンはクライアントのCookieに保存される
+   - サーバー側でデータベースにセッション情報を保存する必要がない
+
+2. **OAuth認証（Google、GitHub等）**
+   - 外部サービス（Google、GitHub等）で認証を行う
+   - 認証情報は外部サービスが管理するため、自前のデータベースが不要
+   - 認証成功後、JWTトークンを発行してセッション管理
+
+3. **メール認証（Magic Link）**
+   - メールアドレスに認証リンクを送信
+   - リンクをクリックするとログイン完了
+   - ユーザー情報をデータベースに保存する必要がない（メールアドレスのみで認証）
+
+**メリット：**
+- ✅ データベース不要（完全無料）
+- ✅ セットアップが簡単
+- ✅ サーバーレス環境に最適
+- ✅ Vercelの無料枠で十分
+
+**基本的な実装例：**
+1. `npm install next-auth`でインストール
+2. API Routeで認証エンドポイントを作成（JWTセッションを使用）
+3. ミドルウェアで保護したいページを指定
+
+**設定例（データベースなし）：**
+```typescript
+// app/api/auth/[...nextauth]/route.ts
+import NextAuth from "next-auth"
+import GoogleProvider from "next-auth/providers/google"
+
+export const authOptions = {
+  providers: [
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    }),
+  ],
+  // JWTセッションを使用（データベース不要）
+  session: {
+    strategy: "jwt",
+  },
+}
+
+export default NextAuth(authOptions)
+```
+
+詳細は[NextAuth.js公式ドキュメント](https://next-auth.js.org/)を参照してください。
+
+#### LINE連携を想定する場合
+
+将来的にLINEで説明書を追加できるようにする場合、**LINE Login（OAuth）**を使用することを推奨します。
+
+**理由：**
+1. **LINE BotやMessaging APIとの統合が容易**
+   - LINE Loginで認証したユーザー情報を、LINE Botでも利用可能
+   - 同じユーザーIDでWebアプリとLINE Botを連携できる
+
+2. **OAuthベースで統一**
+   - Google、LINE、GitHubなど、すべてOAuthベース
+   - 同じ認証フローで複数のプロバイダーに対応可能
+
+3. **セキュリティが高い**
+   - パスワード管理が不要
+   - LINEが認証を管理するため、セキュリティリスクが低い
+
+**実装方法：**
+
+1. **LINE Developersでチャネルを作成**
+   - [LINE Developers](https://developers.line.biz/)にアクセス
+   - 新しいプロバイダーを作成
+   - 「LINE Login」チャネルを作成
+
+2. **LINE Loginの設定**
+   - コールバックURLを設定：
+     - 開発環境: `http://localhost:3000/api/auth/callback/line`
+     - 本番環境: `https://your-domain.vercel.app/api/auth/callback/line`
+   - チャネルIDとチャネルシークレットを取得
+
+3. **NextAuth.jsにLINE Providerを追加**
+   ```typescript
+   import LineProvider from "next-auth/providers/line";
+   
+   providers: [
+     LineProvider({
+       clientId: process.env.LINE_CLIENT_ID!,
+       clientSecret: process.env.LINE_CLIENT_SECRET!,
+     }),
+   ],
+   ```
+
+4. **環境変数に設定**
+   ```env
+   LINE_CLIENT_ID=your-line-channel-id
+   LINE_CLIENT_SECRET=your-line-channel-secret
+   ```
+
+**将来的な拡張：**
+- LINE Botで説明書を追加する機能
+- LINE Messaging APIで説明書を検索する機能
+- LINE Notifyで説明書のリマインダーを送信
+
+これらはすべて、LINE Loginで認証したユーザー情報を利用できます。
+
+#### メール/パスワード認証の設定（個人利用向け）
+
+データベースなしでメール/パスワード認証を使用する場合：
+
+1. **パスワードをハッシュ化**
+   ```bash
+   node scripts/hash-password.js あなたのパスワード
+   node scripts/encode-env-password.js
+   ```
+   または
+   ```bash
+   node -e "const bcrypt = require('bcryptjs'); bcrypt.hash('your-password', 10).then(hash => console.log(hash));"
+   ```
+
+2. **環境変数に設定**
+   `.env.local`ファイルに以下を追加：
+   ```env
+   ALLOWED_EMAIL=your-email@example.com
+   HASHED_PASSWORD="$2a$10$ハッシュ化されたパスワード..."
+   ```
+   
+   **重要**: ハッシュは `$` で始まるため、**引用符（`"`）で囲むことを推奨**します。
+   引用符がない場合、シェルが `$` を変数として解釈してしまう可能性があります。
+
+3. **ログイン方法**
+   - ログイン画面のメールアドレス: `.env.local`の`ALLOWED_EMAIL`と同じ値を入力
+   - ログイン画面のパスワード: **元のパスワード（ハッシュ化前）**を入力
+   - ⚠️ **重要**: ハッシュ化された値をパスワードとして入力しないでください
+
+**注意**: この方法は個人利用向けです。複数ユーザーが必要な場合は、データベースの使用を推奨します。
+
+## Vercelへのデプロイ
+
+### 1. Vercelアカウントの準備
+
+1. [Vercel](https://vercel.com/)にアカウントを作成
+2. GitHubリポジトリと連携
+
+### 2. 環境変数の設定
+
+Vercelのダッシュボードで以下の環境変数を設定してください：
+
+**必須の環境変数:**
+```env
+NOTION_API_KEY=ntn_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+NOTION_DATABASE_ID=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+NEXTAUTH_SECRET=your-secret-key-here
+NEXTAUTH_URL=https://your-domain.vercel.app
+```
+
+**認証機能を使用する場合:**
+```env
+ALLOWED_EMAIL=your-email@example.com
+HASHED_PASSWORD_B64=XXX
+```
+
+**Google OAuthを使用する場合:**
+```env
+GOOGLE_CLIENT_ID=your-google-client-id
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+```
+
+**注意:**
+- `HASHED_PASSWORD_B64`は、Base64エンコードされたハッシュ化パスワードです
+- ローカルで`node scripts/encode-env-password.js`を実行して取得できます
+- `NEXTAUTH_URL`は、デプロイ後の実際のURLに変更してください
+
+### 3. デプロイ
+
+1. Vercelダッシュボードで「New Project」をクリック
+2. GitHubリポジトリを選択
+3. 環境変数を設定（上記参照）
+4. 「Deploy」をクリック
+
+### 4. デプロイ後の確認
+
+- ログイン機能が動作するか確認
+- Notion APIとの連携が正常に動作するか確認
+- 環境変数が正しく読み込まれているか確認（Vercelのログを確認）
+
+## ライセンス
+
+ISC
