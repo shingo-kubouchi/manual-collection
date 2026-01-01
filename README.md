@@ -208,12 +208,39 @@ npm run dev
 
 Vercelのプロジェクト設定で環境変数を追加：
 
-- `NOTION_API_KEY`: Notion Integration Token
-- `NOTION_DATABASE_ID`: NotionデータベースID
+**必須の環境変数:**
+```env
+NOTION_API_KEY=ntn_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+NOTION_DATABASE_ID=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+NEXTAUTH_SECRET=your-secret-key-here
+NEXTAUTH_URL=https://your-domain.vercel.app
+```
+
+**認証機能を使用する場合:**
+```env
+ALLOWED_EMAIL=your-email@example.com
+HASHED_PASSWORD_B64=XXX
+```
+
+**Google OAuthを使用する場合:**
+```env
+GOOGLE_CLIENT_ID=your-google-client-id
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+```
+
+**注意:**
+- `HASHED_PASSWORD_B64`は、ローカルで`node scripts/encode-env-password.js`を実行して取得できます
+- `NEXTAUTH_URL`は、デプロイ後の実際のURLに変更してください（例: `https://your-app.vercel.app`）
 
 ### 3. デプロイ
 
 「Deploy」をクリックしてデプロイを開始します。
+
+### 4. デプロイ後の確認
+
+- ログイン機能が動作するか確認
+- Notion APIとの連携が正常に動作するか確認
+- 環境変数が正しく読み込まれているか確認（Vercelのログを確認）
 
 ## 使い方
 
@@ -490,6 +517,55 @@ export default NextAuth(authOptions)
    - ⚠️ **重要**: ハッシュ化された値をパスワードとして入力しないでください
 
 **注意**: この方法は個人利用向けです。複数ユーザーが必要な場合は、データベースの使用を推奨します。
+
+## Vercelへのデプロイ
+
+### 1. Vercelアカウントの準備
+
+1. [Vercel](https://vercel.com/)にアカウントを作成
+2. GitHubリポジトリと連携
+
+### 2. 環境変数の設定
+
+Vercelのダッシュボードで以下の環境変数を設定してください：
+
+**必須の環境変数:**
+```env
+NOTION_API_KEY=ntn_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+NOTION_DATABASE_ID=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+NEXTAUTH_SECRET=your-secret-key-here
+NEXTAUTH_URL=https://your-domain.vercel.app
+```
+
+**認証機能を使用する場合:**
+```env
+ALLOWED_EMAIL=your-email@example.com
+HASHED_PASSWORD_B64=XXX
+```
+
+**Google OAuthを使用する場合:**
+```env
+GOOGLE_CLIENT_ID=your-google-client-id
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+```
+
+**注意:**
+- `HASHED_PASSWORD_B64`は、Base64エンコードされたハッシュ化パスワードです
+- ローカルで`node scripts/encode-env-password.js`を実行して取得できます
+- `NEXTAUTH_URL`は、デプロイ後の実際のURLに変更してください
+
+### 3. デプロイ
+
+1. Vercelダッシュボードで「New Project」をクリック
+2. GitHubリポジトリを選択
+3. 環境変数を設定（上記参照）
+4. 「Deploy」をクリック
+
+### 4. デプロイ後の確認
+
+- ログイン機能が動作するか確認
+- Notion APIとの連携が正常に動作するか確認
+- 環境変数が正しく読み込まれているか確認（Vercelのログを確認）
 
 ## ライセンス
 

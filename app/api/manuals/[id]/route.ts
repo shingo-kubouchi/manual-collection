@@ -5,10 +5,11 @@ import { ApiResponse } from "@/lib/types";
 // GET: IDで説明書を取得
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const manual = await getManualById(params.id);
+    const { id } = await params;
+    const manual = await getManualById(id);
     const response: ApiResponse<typeof manual> = {
       success: true,
       data: manual,
@@ -34,9 +35,10 @@ export async function GET(
 // PATCH: 説明書を更新
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const body = await request.json();
     const { 製品名, 説明書URL, 説明書画像, 購入日, カテゴリ } = body;
 
@@ -48,7 +50,7 @@ export async function PATCH(
     if (購入日 !== undefined) updateData.購入日 = 購入日;
     if (カテゴリ !== undefined) updateData.カテゴリ = カテゴリ;
 
-    const manual = await updateManual(params.id, updateData);
+    const manual = await updateManual(id, updateData);
     const response: ApiResponse<typeof manual> = {
       success: true,
       data: manual,
@@ -74,10 +76,11 @@ export async function PATCH(
 // DELETE: 説明書を削除
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    await deleteManual(params.id);
+    const { id } = await params;
+    await deleteManual(id);
     const response: ApiResponse<null> = {
       success: true,
     };
