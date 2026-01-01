@@ -139,9 +139,6 @@ export default function SignInPage() {
             >
               {loading ? "ログイン中..." : "ログイン"}
             </button>
-            <p className="text-xs text-gray-500 text-center">
-              個人利用向けの認証です。環境変数に設定されたメールアドレスとパスワードでログインできます。
-            </p>
           </form>
         )}
 
